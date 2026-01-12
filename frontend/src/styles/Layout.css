@@ -1,0 +1,196 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 70px;
+}
+
+.header {
+  background-color: #1a1a1a;
+  color: white;
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  text-decoration: none;
+  color: white;
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-desktop {
+  display: flex;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: #ccc;
+  border-radius: 4px;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.nav-link.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-info {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem 0;
+}
+
+.footer {
+  background-color: #f5f5f5;
+  padding: 1.5rem 0;
+  text-align: center;
+  color: #666;
+  margin-top: auto;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+}
+
+/* Mobile Navigation */
+.nav-mobile {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 0.5rem 0;
+}
+
+.nav-mobile {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.nav-mobile-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #666;
+  padding: 0.5rem;
+  min-width: 60px;
+  transition: all 0.3s;
+  border-radius: 8px;
+}
+
+.nav-mobile-item.active {
+  color: #007bff;
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.nav-mobile-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.nav-mobile-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+@media (min-width: 769px) {
+  .nav-mobile {
+    display: none;
+  }
+
+  .layout {
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-desktop {
+    display: none;
+  }
+
+  .nav-user {
+    border-left: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+  }
+
+  .main {
+    padding: 1rem 0;
+    padding-bottom: 80px;
+  }
+
+  .footer-desktop {
+    display: none;
+  }
+}
