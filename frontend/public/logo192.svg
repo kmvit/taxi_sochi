@@ -1,0 +1,5 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+    <rect width="192" height="192" fill="#000000"/>
+    <text x="96" y="96" font-family="Arial, sans-serif" font-size="76.80000000000001" fill="#FFD700" text-anchor="middle" dominant-baseline="middle">🚕</text>
+    <text x="96" y="144" font-family="Arial, sans-serif" font-size="28.799999999999997" fill="#FFFFFF" text-anchor="middle" font-weight="bold">TAXI</text>
+  </svg>

@@ -1,0 +1,5 @@
+<svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+    <rect width="64" height="64" fill="#000000"/>
+    <text x="32" y="32" font-family="Arial, sans-serif" font-size="25.6" fill="#FFD700" text-anchor="middle" dominant-baseline="middle">🚕</text>
+    <text x="32" y="48" font-family="Arial, sans-serif" font-size="9.6" fill="#FFFFFF" text-anchor="middle" font-weight="bold">T</text>
+  </svg>

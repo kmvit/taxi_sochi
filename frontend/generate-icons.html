@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generate PWA Icons</title>
+</head>
+<body>
+    <h1>Генератор иконок PWA</h1>
+    <p>Откройте эту страницу в браузере и нажмите кнопку для генерации иконок.</p>
+    <button onclick="generateIcons()">Сгенерировать иконки</button>
+    <div id="output"></div>
+    
+    <script>
+        function generateIcons() {
+            const sizes = [
+                { size: 192, name: 'logo192.png' },
+                { size: 512, name: 'logo512.png' }
+            ];
+            
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            sizes.forEach(({ size, name }) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // Background
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, size, size);
+                
+                // Taxi emoji
+                ctx.font = `${size * 0.4}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🚕', size / 2, size / 2 - size * 0.1);
+                
+                // Text "TAXI"
+                ctx.font = `bold ${size * 0.15}px Arial`;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillText('TAXI', size / 2, size / 2 + size * 0.25);
+                
+                // Create download link
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = name;
+                    link.textContent = `Скачать ${name}`;
+                    link.style.display = 'block';
+                    link.style.margin = '10px 0';
+                    output.appendChild(link);
+                });
+                
+                // Show preview
+                const preview = document.createElement('div');
+                preview.innerHTML = `<h3>${name}</h3>`;
+                preview.appendChild(canvas);
+                canvas.style.border = '1px solid #ccc';
+                canvas.style.margin = '10px 0';
+                output.appendChild(preview);
+            });
+            
+            // Generate favicon
+            const faviconCanvas = document.createElement('canvas');
+            faviconCanvas.width = 32;
+            faviconCanvas.height = 32;
+            const fctx = faviconCanvas.getContext('2d');
+            fctx.fillStyle = '#000000';
+            fctx.fillRect(0, 0, 32, 32);
+            fctx.font = '20px Arial';
+            fctx.textAlign = 'center';
+            fctx.textBaseline = 'middle';
+            fctx.fillText('🚕', 16, 16);
+            
+            faviconCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'favicon.ico';
+                link.textContent = 'Скачать favicon.ico';
+                link.style.display = 'block';
+                link.style.margin = '10px 0';
+                output.appendChild(link);
+            });
+            
+            const preview = document.createElement('div');
+            preview.innerHTML = '<h3>favicon.ico</h3>';
+            preview.appendChild(faviconCanvas);
+            faviconCanvas.style.border = '1px solid #ccc';
+            faviconCanvas.style.margin = '10px 0';
+            output.appendChild(preview);
+        }
+    </script>
+</body>
+</html>

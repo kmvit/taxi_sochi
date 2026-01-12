@@ -79,8 +79,16 @@ const InstallPrompt = () => {
     }
 
     try {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      console.log('User choice:', choiceResult);
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+    } catch (error) {
+      console.error('Error during installation:', error);
     } finally {
       setDeferredPrompt(null);
       dismiss();
@@ -112,7 +120,7 @@ const InstallPrompt = () => {
 
           <div className="install-prompt-actions">
             {!isIOS && (
-              <button onClick={install} className="btn btn-primary" disabled={!deferredPrompt}>
+              <button onClick={install} className="btn btn-primary">
                 Установить
               </button>
             )}
