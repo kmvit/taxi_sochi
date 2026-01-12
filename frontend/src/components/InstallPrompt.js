@@ -30,6 +30,13 @@ const InstallPrompt = () => {
     const ios = isIOSDevice();
     const standalone = isRunningStandalone();
     
+    // Проверка URL параметра для принудительного показа (для тестирования)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('showInstall') === 'true') {
+      localStorage.removeItem(SEEN_KEY);
+      console.log('[PWA] Forced show via URL parameter');
+    }
+    
     console.log('[PWA] InstallPrompt mounted');
     console.log('[PWA] iOS device:', ios);
     console.log('[PWA] Running standalone:', standalone);
@@ -51,6 +58,13 @@ const InstallPrompt = () => {
       // Chrome/Android: даём показать наш UI вместо мини-инфобара
       e.preventDefault();
       setDeferredPrompt(e);
+      // Если событие пришло, значит это не чистый iOS Safari
+      // (iOS Safari не поддерживает beforeinstallprompt)
+      // Обновляем флаг iOS
+      if (ios && e.platforms && e.platforms.length > 0) {
+        console.log('[PWA] beforeinstallprompt on iOS-like device, treating as non-iOS for install');
+        setIsIOS(false);
+      }
     };
 
     window.addEventListener('appinstalled', onAppInstalled);
@@ -62,11 +76,28 @@ const InstallPrompt = () => {
     };
   }, []);
 
-  // 2) Показываем подсказку после входа (один раз)
+  // 2) Показываем подсказку после входа или когда приходит beforeinstallprompt
   useEffect(() => {
-    console.log('[PWA] Check show prompt:', { user: !!user, installed, seen: localStorage.getItem(SEEN_KEY) });
+    console.log('[PWA] Check show prompt:', { 
+      user: !!user, 
+      installed, 
+      seen: localStorage.getItem(SEEN_KEY),
+      hasDeferredPrompt: !!deferredPrompt 
+    });
     
     if (!user || installed) return;
+    
+    // Если есть deferredPrompt (событие beforeinstallprompt), показываем окно
+    // даже если оно уже показывалось - браузер готов к установке!
+    if (deferredPrompt) {
+      console.log('[PWA] beforeinstallprompt available, showing prompt');
+      const t = setTimeout(() => {
+        setShowPrompt(true);
+      }, 500);
+      return () => clearTimeout(t);
+    }
+    
+    // Иначе показываем только если еще не показывали
     if (localStorage.getItem(SEEN_KEY)) return;
 
     console.log('[PWA] Will show prompt in 1.5s');
@@ -75,7 +106,7 @@ const InstallPrompt = () => {
       setShowPrompt(true);
     }, 1500);
     return () => clearTimeout(t);
-  }, [user, installed]);
+  }, [user, installed, deferredPrompt]);
 
   const dismiss = () => {
     setShowPrompt(false);
