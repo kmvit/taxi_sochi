@@ -8,25 +8,34 @@ const isLocalhost = Boolean(
 );
 
 export function register(config) {
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
-    if (publicUrl.origin !== window.location.origin) {
-      return;
-    }
+  // В CRA service worker по умолчанию регистрируется только в production.
+  // Для разработки на localhost это мешает проверять PWA-установку, поэтому
+  // разрешаем регистрацию и в dev, но ТОЛЬКО на localhost.
+  const shouldRegister =
+    'serviceWorker' in navigator &&
+    (process.env.NODE_ENV === 'production' || isLocalhost);
 
-    window.addEventListener('load', () => {
-      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-
-      if (isLocalhost) {
-        checkValidServiceWorker(swUrl, config);
-        navigator.serviceWorker.ready.then(() => {
-          console.log('This web app is being served cache-first by a service worker.');
-        });
-      } else {
-        registerValidSW(swUrl, config);
-      }
-    });
+  if (!shouldRegister) {
+    return;
   }
+
+  const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+  if (publicUrl.origin !== window.location.origin) {
+    return;
+  }
+
+  window.addEventListener('load', () => {
+    const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+
+    if (isLocalhost) {
+      checkValidServiceWorker(swUrl, config);
+      navigator.serviceWorker.ready.then(() => {
+        console.log('Service worker registered (localhost).');
+      });
+    } else {
+      registerValidSW(swUrl, config);
+    }
+  });
 }
 
 function registerValidSW(swUrl, config) {
