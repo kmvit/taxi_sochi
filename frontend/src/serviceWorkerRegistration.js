@@ -8,6 +8,11 @@ const isLocalhost = Boolean(
 );
 
 export function register(config) {
+  console.log('[SW] Attempting to register service worker');
+  console.log('[SW] Environment:', process.env.NODE_ENV);
+  console.log('[SW] Is localhost:', isLocalhost);
+  console.log('[SW] Has serviceWorker support:', 'serviceWorker' in navigator);
+  
   // В CRA service worker по умолчанию регистрируется только в production.
   // Для разработки на localhost это мешает проверять PWA-установку, поэтому
   // разрешаем регистрацию и в dev, но ТОЛЬКО на localhost.
@@ -16,21 +21,24 @@ export function register(config) {
     (process.env.NODE_ENV === 'production' || isLocalhost);
 
   if (!shouldRegister) {
+    console.log('[SW] Service worker registration skipped');
     return;
   }
 
   const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
   if (publicUrl.origin !== window.location.origin) {
+    console.log('[SW] Public URL origin mismatch, skipping registration');
     return;
   }
 
   window.addEventListener('load', () => {
     const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+    console.log('[SW] Service worker URL:', swUrl);
 
     if (isLocalhost) {
       checkValidServiceWorker(swUrl, config);
       navigator.serviceWorker.ready.then(() => {
-        console.log('Service worker registered (localhost).');
+        console.log('[SW] Service worker registered and ready (localhost).');
       });
     } else {
       registerValidSW(swUrl, config);
@@ -39,9 +47,11 @@ export function register(config) {
 }
 
 function registerValidSW(swUrl, config) {
+  console.log('[SW] Registering service worker at:', swUrl);
   navigator.serviceWorker
     .register(swUrl)
     .then((registration) => {
+      console.log('[SW] Service worker registered successfully:', registration);
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
@@ -50,12 +60,12 @@ function registerValidSW(swUrl, config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              console.log('New content is available; please refresh.');
+              console.log('[SW] New content is available; please refresh.');
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
               }
             } else {
-              console.log('Content is cached for offline use.');
+              console.log('[SW] Content is cached for offline use.');
               if (config && config.onSuccess) {
                 config.onSuccess(registration);
               }
@@ -65,7 +75,7 @@ function registerValidSW(swUrl, config) {
       };
     })
     .catch((error) => {
-      console.error('Error during service worker registration:', error);
+      console.error('[SW] Error during service worker registration:', error);
     });
 }
 

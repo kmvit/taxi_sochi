@@ -27,16 +27,27 @@ const InstallPrompt = () => {
 
   // 1) Слушаем события установки
   useEffect(() => {
-    setIsIOS(isIOSDevice());
-    setInstalled(isRunningStandalone());
+    const ios = isIOSDevice();
+    const standalone = isRunningStandalone();
+    
+    console.log('[PWA] InstallPrompt mounted');
+    console.log('[PWA] iOS device:', ios);
+    console.log('[PWA] Running standalone:', standalone);
+    console.log('[PWA] HTTPS:', window.location.protocol === 'https:');
+    console.log('[PWA] Service Worker support:', 'serviceWorker' in navigator);
+    
+    setIsIOS(ios);
+    setInstalled(standalone);
 
     const onAppInstalled = () => {
+      console.log('[PWA] App installed event fired');
       setInstalled(true);
       setShowPrompt(false);
       localStorage.setItem(SEEN_KEY, 'true');
     };
 
     const onBeforeInstallPrompt = (e) => {
+      console.log('[PWA] beforeinstallprompt event fired', e);
       // Chrome/Android: даём показать наш UI вместо мини-инфобара
       e.preventDefault();
       setDeferredPrompt(e);
@@ -53,10 +64,16 @@ const InstallPrompt = () => {
 
   // 2) Показываем подсказку после входа (один раз)
   useEffect(() => {
+    console.log('[PWA] Check show prompt:', { user: !!user, installed, seen: localStorage.getItem(SEEN_KEY) });
+    
     if (!user || installed) return;
     if (localStorage.getItem(SEEN_KEY)) return;
 
-    const t = setTimeout(() => setShowPrompt(true), 1500);
+    console.log('[PWA] Will show prompt in 1.5s');
+    const t = setTimeout(() => {
+      console.log('[PWA] Showing install prompt');
+      setShowPrompt(true);
+    }, 1500);
     return () => clearTimeout(t);
   }, [user, installed]);
 
@@ -94,6 +111,15 @@ const InstallPrompt = () => {
       dismiss();
     }
   };
+
+  // Для отладки показываем состояние
+  useEffect(() => {
+    if (showPrompt) {
+      console.log('[PWA] Prompt should be visible now');
+      console.log('[PWA] deferredPrompt available:', !!deferredPrompt);
+      console.log('[PWA] isIOS:', isIOS);
+    }
+  }, [showPrompt, deferredPrompt, isIOS]);
 
   if (!user || installed || !showPrompt) {
     return null;
