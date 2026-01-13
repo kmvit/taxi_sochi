@@ -31,10 +31,19 @@ class PricingViewSet(viewsets.ModelViewSet):
     serializer_class = PricingSerializer
     permission_classes = [IsAdminOrReadOnly]
     
-    @action(detail=False, methods=['post'])
+    def get_permissions(self):
+        """
+        Переопределяем права доступа для action get_price
+        """
+        if self.action == 'get_price':
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
+    
+    @action(detail=False, methods=['post'], url_path='get_price')
     def get_price(self, request):
         """
         Получить цену для маршрута и класса авто
+        Доступно всем аутентифицированным пользователям
         """
         serializer = GetPriceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
