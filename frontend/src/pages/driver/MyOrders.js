@@ -88,7 +88,7 @@ const MyOrders = () => {
 
   return (
     <div>
-      <h1 className="page-title">Мои заказы</h1>
+      <h1 className="page-title">Мои поездки</h1>
 
       <div className="card mb-2">
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>

@@ -19,7 +19,7 @@ const Layout = ({ children }) => {
       case 'admin':
         return '/admin';
       case 'driver':
-        return '/driver/available';
+        return '/driver/profile';
       case 'customer':
         return '/customer';
       default:
@@ -61,8 +61,9 @@ const Layout = ({ children }) => {
     switch (user.role) {
       case 'driver':
         return [
-          { path: '/driver/available', label: 'Заказы', icon: '📋', mobileLabel: 'Заказы' },
+          { path: '/driver/available', label: 'Поиск заказов', icon: '📋', mobileLabel: 'Поиск' },
           { path: '/driver/my-orders', label: 'Мои поездки', icon: '🚗', mobileLabel: 'Поездки' },
+          { path: '/driver/my-cars', label: 'Мои авто', icon: '🚙', mobileLabel: 'Авто' },
           { path: '/driver', label: 'Профиль', icon: '👤', mobileLabel: 'Профиль' },
         ];
       case 'customer':

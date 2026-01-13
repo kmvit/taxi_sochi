@@ -24,7 +24,7 @@ const Login = () => {
       if (user.role === 'admin') {
         navigate('/admin');
       } else if (user.role === 'driver') {
-        navigate('/driver/available');
+        navigate('/driver/profile');
       } else if (user.role === 'customer') {
         navigate('/customer');
       } else {
