@@ -28,16 +28,18 @@ const Layout = ({ children }) => {
   };
 
   const isActive = (path) => {
-    // Специальная обработка для главной страницы водителя
-    if (path === '/driver') {
-      return location.pathname === '/driver' || location.pathname === '/driver/profile';
-    }
-    // Для остальных путей - стандартная проверка
+    // Точное совпадение пути
     if (location.pathname === path) {
       return true;
     }
-    // Проверяем, начинается ли путь с path + '/', но не для главной страницы
-    return location.pathname.startsWith(path + '/') && path !== '/driver';
+    // Для путей, которые не являются корневыми, проверяем начало
+    // Но исключаем случаи, когда path является префиксом другого пути
+    if (path === '/driver') {
+      // /driver активен только если это точно /driver, а не /driver/...
+      return location.pathname === '/driver';
+    }
+    // Для остальных путей проверяем, начинается ли путь с path + '/'
+    return location.pathname.startsWith(path + '/');
   };
 
   const getNavItems = () => {
@@ -61,10 +63,11 @@ const Layout = ({ children }) => {
     switch (user.role) {
       case 'driver':
         return [
+          { path: '/driver', label: 'Главная', icon: '🏠', mobileLabel: 'Главная' },
           { path: '/driver/available', label: 'Поиск заказов', icon: '📋', mobileLabel: 'Поиск' },
           { path: '/driver/my-orders', label: 'Мои поездки', icon: '🚗', mobileLabel: 'Поездки' },
           { path: '/driver/my-cars', label: 'Мои авто', icon: '🚙', mobileLabel: 'Авто' },
-          { path: '/driver', label: 'Профиль', icon: '👤', mobileLabel: 'Профиль' },
+          profileItem,
         ];
       case 'customer':
         return [
