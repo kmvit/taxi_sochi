@@ -47,7 +47,7 @@ const OrdersList = () => {
         </div>
       ) : (
         <div className="card">
-          <div className="table-responsive">
+          <div style={{ overflowX: 'auto' }}>
             <table className="table">
               <thead>
                 <tr>
