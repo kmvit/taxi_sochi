@@ -27,7 +27,7 @@ function Home() {
   if (user.role === 'admin') {
     return <Navigate to="/admin" replace />;
   } else if (user.role === 'driver') {
-    return <Navigate to="/driver/profile" replace />;
+    return <Navigate to="/driver" replace />;
   } else if (user.role === 'customer') {
     return <Navigate to="/customer" replace />;
   }

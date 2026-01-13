@@ -19,7 +19,7 @@ const Layout = ({ children }) => {
       case 'admin':
         return '/admin';
       case 'driver':
-        return '/driver/profile';
+        return '/driver';
       case 'customer':
         return '/customer';
       default:
