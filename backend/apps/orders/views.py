@@ -17,6 +17,15 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     
+    def perform_destroy(self, instance):
+        """
+        Удалять заказы могут только администраторы
+        """
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Только администраторы могут удалять заказы")
+        instance.delete()
+    
     def get_serializer_class(self):
         if self.action == 'create':
             return OrderCreateSerializer

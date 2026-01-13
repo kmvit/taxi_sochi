@@ -127,6 +127,24 @@ const AllOrders = () => {
     }
   };
 
+  const handleDeleteOrder = async () => {
+    if (!editingOrder) return;
+    
+    if (!window.confirm('Вы уверены, что хотите УДАЛИТЬ заказ? Это действие необратимо!')) {
+      return;
+    }
+
+    try {
+      await api.delete(`/orders/${editingOrder.id}/`);
+      setSuccess('Заказ успешно удален');
+      await loadOrders();
+      handleCloseModal();
+    } catch (error) {
+      console.error('Ошибка удаления заказа:', error);
+      setError(error.response?.data?.detail || 'Ошибка удаления заказа');
+    }
+  };
+
   if (loading) {
     return <div className="loading">Загрузка...</div>;
   }
@@ -375,6 +393,22 @@ const AllOrders = () => {
                 >
                   Отменить заказ
                 </button>
+              </div>
+
+              <div className="form-group" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #ddd' }}>
+                <label className="form-label" style={{ color: '#dc3545', fontWeight: 'bold' }}>
+                  Опасная зона
+                </label>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDeleteOrder}
+                  style={{ width: '100%', backgroundColor: '#a02020' }}
+                >
+                  🗑️ Удалить заказ навсегда
+                </button>
+                <small style={{ color: '#666', display: 'block', marginTop: '0.5rem' }}>
+                  Внимание: удаленный заказ невозможно восстановить
+                </small>
               </div>
             </div>
 
