@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, startOfDay, endOfDay, parseISO, isSameDay } from 'date-fns';
+import { format, startOfDay, parseISO, isSameDay } from 'date-fns';
 import api from '../../services/api';
 
 const MyOrders = () => {
@@ -14,6 +14,7 @@ const MyOrders = () => {
 
   useEffect(() => {
     filterOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, selectedDate]);
 
   const loadOrders = async () => {

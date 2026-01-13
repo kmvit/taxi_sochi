@@ -36,6 +36,7 @@ const CreateOrder = () => {
     if (formData.zone_from && formData.zone_to && formData.car_class) {
       calculatePrice();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.zone_from, formData.zone_to, formData.car_class]);
 
   const loadZones = async () => {
