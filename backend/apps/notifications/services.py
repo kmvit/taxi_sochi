@@ -23,6 +23,7 @@ def send_web_push(subscription_info: dict, title: str, body: str, data: dict = N
         True если отправлено успешно
     """
     try:
+        import json
         payload = {
             'title': title,
             'body': body,
@@ -38,20 +39,25 @@ def send_web_push(subscription_info: dict, title: str, body: str, data: dict = N
             logger.warning("VAPID_PRIVATE_KEY not configured")
             return False
         
+        logger.info(f"Sending push notification: {title}")
+        logger.debug(f"Payload: {json.dumps(payload)}")
+        logger.debug(f"Subscription endpoint: {subscription_info.get('endpoint', 'N/A')[:50]}...")
+        
         webpush(
             subscription_info=subscription_info,
-            data=str(payload),
+            data=json.dumps(payload),
             vapid_private_key=vapid_private_key,
             vapid_claims=vapid_claims
         )
         
+        logger.info(f"Push notification sent successfully: {title}")
         return True
         
     except WebPushException as e:
         logger.error(f"Web Push error: {e}")
         return False
     except Exception as e:
-        logger.error(f"Error sending web push: {e}")
+        logger.error(f"Error sending web push: {e}", exc_info=True)
         return False
 
 
@@ -214,6 +220,8 @@ def send_to_admins(
 
 def send_order_notification_to_drivers(order):
     """Отправить уведомление о новом/обновленном заказе водителям"""
+    logger.info(f"Sending order notification for order #{order.id} to drivers with car_class={order.car_class.name}")
+    
     title = "Новый заказ"
     body = f"Маршрут: {order.zone_from.name} → {order.zone_to.name}, Класс: {order.car_class.name}"
     data = {
@@ -222,13 +230,16 @@ def send_order_notification_to_drivers(order):
         'car_class_id': str(order.car_class.id),
     }
     
-    return send_to_drivers_by_car_class(
+    sent_count = send_to_drivers_by_car_class(
         order.car_class.id,
         'new_order',
         title,
         body,
         data
     )
+    
+    logger.info(f"Order notification sent to {sent_count} drivers")
+    return sent_count
 
 
 def send_order_available_again_to_drivers(order):

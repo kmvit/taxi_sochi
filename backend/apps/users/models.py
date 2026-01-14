@@ -49,10 +49,9 @@ class DeviceToken(models.Model):
         related_name='device_tokens',
         verbose_name='Пользователь'
     )
-    token = models.CharField(
-        max_length=255,
+    token = models.TextField(
         unique=True,
-        verbose_name='FCM токен'
+        verbose_name='Push подписка (JSON)'
     )
     device_type = models.CharField(
         max_length=20,
