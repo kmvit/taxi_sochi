@@ -141,6 +141,60 @@ class OrderViewSet(viewsets.ModelViewSet):
             )
     
     @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """
+        Отменить заказ (для водителя)
+        """
+        if request.user.role != 'driver':
+            return Response(
+                {"detail": "Только для водителей"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        order = self.get_object()
+        
+        try:
+            driver = Driver.objects.get(user=request.user)
+            
+            # Проверяем, что это заказ данного водителя
+            if order.driver != driver:
+                return Response(
+                    {"detail": "Вы можете отменить только свои заказы"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Проверяем, что заказ еще не выполнен и не отменен
+            if order.status == 'completed':
+                return Response(
+                    {"detail": "Нельзя отменить выполненный заказ"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if order.status == 'cancelled':
+                return Response(
+                    {"detail": "Заказ уже отменен"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Отменяем заказ и освобождаем его для других водителей
+            order.driver = None
+            order.status = 'pending'
+            order.taken_at = None
+            order.save()
+            
+            serializer = self.get_serializer(order)
+            return Response({
+                "detail": "Заказ отменен и возвращен в список доступных",
+                "order": serializer.data
+            })
+        
+        except Driver.DoesNotExist:
+            return Response(
+                {"detail": "Профиль водителя не найден"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
         """
         Изменить статус заказа

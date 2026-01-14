@@ -57,6 +57,20 @@ const MyOrders = () => {
     }
   };
 
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Вы уверены, что хотите отменить этот заказ? Он станет доступным для других водителей.')) {
+      return;
+    }
+
+    try {
+      const response = await api.post(`/orders/${orderId}/cancel/`);
+      alert(response.data?.detail || 'Заказ успешно отменен');
+      loadOrders();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Ошибка отмены заказа');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       pending: { text: 'Ожидает', class: 'badge-pending' },
@@ -183,16 +197,26 @@ const MyOrders = () => {
                 Оплата: {order.price_driver || order.price_client} ₽
               </div>
 
-              {getNextStatus(order.status) && (
-                <div style={{ marginTop: '1rem' }}>
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {getNextStatus(order.status) && (
                   <button
                     onClick={() => handleUpdateStatus(order.id, getNextStatus(order.status))}
                     className="btn btn-primary"
                   >
                     {getNextStatusText(order.status)}
                   </button>
-                </div>
-              )}
+                )}
+                
+                {(order.status === 'taken' || order.status === 'in_progress') && (
+                  <button
+                    onClick={() => handleCancelOrder(order.id)}
+                    className="btn btn-secondary"
+                    style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
+                  >
+                    Отменить заказ
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
