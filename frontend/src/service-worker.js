@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-globals */
+/* eslint-env serviceworker */
 
 // This service worker can be customized!
 // See https://developers.google.com/web/tools/workbox/modules
@@ -135,7 +136,7 @@ self.addEventListener('notificationclick', (event) => {
 
   // Открываем или фокусируем окно приложения
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // Ищем уже открытое окно
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
@@ -155,8 +156,8 @@ self.addEventListener('notificationclick', (event) => {
       }
 
       // Если окна нет, открываем новое
-      if (clients.openWindow) {
-        return clients.openWindow(url);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
       }
     })
   );
