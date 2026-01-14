@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authService } from '../services/auth';
+import api from '../services/api';
 import { 
   initializeNotifications, 
   cleanupNotifications 
@@ -12,22 +13,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем, есть ли сохраненный пользователь
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
+    // Проверяем авторизацию и валидность токена
+    const checkAuth = async () => {
+      const token = localStorage.getItem('access_token');
+      const currentUser = authService.getCurrentUser();
       
-      // Инициализируем уведомления для авторизованного пользователя
-      // Делаем это асинхронно, чтобы не блокировать загрузку
-      initializeNotifications().then((result) => {
-        if (result.success) {
-          console.log('Notifications initialized successfully');
-        } else {
-          console.log('Failed to initialize notifications:', result.message);
+      if (token && currentUser) {
+        try {
+          // Проверяем валидность токена через запрос к API
+          const userResponse = await api.get('/auth/me/');
+          const userData = userResponse.data;
+          
+          // Обновляем данные пользователя
+          localStorage.setItem('user', JSON.stringify(userData));
+          setUser(userData);
+          
+          // Инициализируем уведомления для авторизованного пользователя
+          initializeNotifications().then((result) => {
+            if (result.success) {
+              console.log('Notifications initialized successfully');
+            } else {
+              console.log('Failed to initialize notifications:', result.message);
+            }
+          });
+        } catch (error) {
+          // Если токен невалидный, очищаем данные
+          console.error('Token validation failed:', error);
+          authService.logout();
+          setUser(null);
         }
-      });
-    }
-    setLoading(false);
+      } else {
+        // Нет токена или пользователя - очищаем на всякий случай
+        authService.logout();
+        setUser(null);
+      }
+      
+      setLoading(false);
+    };
+    
+    checkAuth();
   }, []);
 
   const login = async (username, password) => {
@@ -77,7 +101,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     loading,
-    isAuthenticated: authService.isAuthenticated(),
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
