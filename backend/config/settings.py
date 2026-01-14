@@ -175,6 +175,12 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF settings for HTTPS
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://c28cb19bf49c.vps.myjino.ru'
+).split(',')
+
 
 # Web Push (VAPID) settings
 VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
