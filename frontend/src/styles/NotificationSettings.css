@@ -1,0 +1,153 @@
+.notification-settings {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.notification-settings h3 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.notification-status {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.notification-status .status-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.notification-status .status-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.status-enabled {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #81c784;
+}
+
+.status-default {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffb74d;
+}
+
+.status-blocked {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
+
+.status-not-supported {
+  background-color: #f5f5f5;
+  color: #616161;
+  border: 1px solid #bdbdbd;
+}
+
+.notification-description {
+  margin-bottom: 20px;
+  line-height: 1.6;
+  color: #666;
+}
+
+.notification-actions {
+  margin-bottom: 20px;
+}
+
+.notification-actions button {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-enable {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btn-enable:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.btn-disable {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-disable:hover:not(:disabled) {
+  background-color: #da190b;
+}
+
+.notification-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.blocked-message {
+  padding: 15px;
+  background-color: #fff9c4;
+  border: 1px solid #fdd835;
+  border-radius: 8px;
+  color: #f57f17;
+}
+
+.blocked-message p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.notification-info {
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.notification-info h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.notification-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.notification-info li {
+  margin-bottom: 8px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .notification-settings {
+    padding: 15px;
+  }
+
+  .notification-settings h3 {
+    font-size: 20px;
+  }
+
+  .notification-status {
+    padding: 12px;
+  }
+
+  .notification-actions button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}

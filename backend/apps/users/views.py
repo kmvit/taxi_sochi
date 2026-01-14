@@ -1,14 +1,16 @@
+from django.conf import settings
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import update_session_auth_hash
-from .models import User
+from .models import User, DeviceToken
 from .serializers import (
     UserSerializer, 
     UserRegistrationSerializer,
-    ChangePasswordSerializer
+    ChangePasswordSerializer,
+    DeviceTokenSerializer
 )
 
 
@@ -62,3 +64,62 @@ def current_user(request):
     """Получить текущего пользователя"""
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def register_device_token(request):
+    """Регистрация токена устройства для push-уведомлений"""
+    serializer = DeviceTokenSerializer(data=request.data, context={'request': request})
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"detail": "Токен успешно зарегистрирован", "token": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unregister_device_token(request):
+    """Удаление токена устройства"""
+    token = request.data.get('token')
+    
+    if not token:
+        return Response(
+            {"detail": "Требуется поле 'token'"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        device_token = DeviceToken.objects.get(token=token, user=request.user)
+        device_token.is_active = False
+        device_token.save()
+        
+        return Response(
+            {"detail": "Токен успешно деактивирован"},
+            status=status.HTTP_200_OK
+        )
+    except DeviceToken.DoesNotExist:
+        return Response(
+            {"detail": "Токен не найден"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_vapid_public_key(request):
+    """Получить публичный VAPID ключ"""
+    public_key = getattr(settings, 'VAPID_PUBLIC_KEY', '')
+    
+    if not public_key:
+        return Response(
+            {"detail": "VAPID ключ не настроен"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+    return Response({"publicKey": public_key})

@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'push_notifications',
     
     # Local apps
     'apps.users',
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     'apps.cars',
     'apps.orders',
     'apps.pricing',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [
@@ -176,7 +176,29 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 CORS_ALLOW_CREDENTIALS = True
 
 
-# Push Notifications settings
-PUSH_NOTIFICATIONS_SETTINGS = {
-    'WP_CLAIMS': {'sub': 'mailto:your-email@example.com'},
+# Web Push (VAPID) settings
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
+VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'mailto:admin@taxi-pwa.local')
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'apps.notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }

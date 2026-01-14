@@ -74,4 +74,92 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Push notification handlers
+self.addEventListener('push', (event) => {
+  console.log('Push notification received:', event);
+
+  if (!event.data) {
+    return;
+  }
+
+  try {
+    const data = event.data.json();
+    const title = data.notification?.title || data.title || 'Новое уведомление';
+    const options = {
+      body: data.notification?.body || data.body || '',
+      icon: '/logo192.svg',
+      badge: '/logo192.svg',
+      data: data.data || data,
+      tag: data.data?.order_id || 'default',
+      requireInteraction: true,
+      actions: [
+        {
+          action: 'open',
+          title: 'Открыть',
+        },
+        {
+          action: 'close',
+          title: 'Закрыть',
+        },
+      ],
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  } catch (error) {
+    console.error('Error handling push notification:', error);
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const data = event.notification.data;
+  let url = '/';
+
+  // Определяем URL на основе типа уведомления
+  if (data?.type === 'new_order' || data?.type === 'order_cancelled') {
+    url = '/driver/available-orders';
+  } else if (data?.type === 'order_created' || data?.type === 'order_completed') {
+    url = '/admin/orders';
+  } else if (data?.order_id) {
+    url = `/orders/${data.order_id}`;
+  }
+
+  // Открываем или фокусируем окно приложения
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Ищем уже открытое окно
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        if ('focus' in client) {
+          return client.focus().then((client) => {
+            // Отправляем сообщение клиенту для навигации
+            if ('postMessage' in client) {
+              client.postMessage({
+                type: 'NOTIFICATION_CLICK',
+                url: url,
+                data: data,
+              });
+            }
+            return client;
+          });
+        }
+      }
+
+      // Если окна нет, открываем новое
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
+
 // Any other custom service worker logic can go here.

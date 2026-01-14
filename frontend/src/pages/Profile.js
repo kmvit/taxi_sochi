@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationSettings from '../components/NotificationSettings';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -64,6 +65,11 @@ const Profile = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Настройки уведомлений */}
+      <div className="card" style={{ padding: '1rem', marginBottom: '1rem' }}>
+        <NotificationSettings />
       </div>
 
       {/* Кнопка выхода */}
