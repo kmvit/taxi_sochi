@@ -57,31 +57,41 @@ export const requestNotificationPermission = async () => {
 export const subscribeToPush = async () => {
   try {
     if (!('serviceWorker' in navigator)) {
-      console.warn('Service Worker not supported');
+      console.warn('[Notifications] Service Worker not supported');
       return null;
     }
 
-    // Ждем регистрации service worker
-    const registration = await navigator.serviceWorker.ready;
+    console.log('[Notifications] Waiting for service worker to be ready...');
+    // Ждем регистрации service worker с таймаутом
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+      )
+    ]);
+    console.log('[Notifications] Service worker is ready');
 
     // Получаем VAPID ключ с сервера
+    console.log('[Notifications] Fetching VAPID public key...');
     const vapidPublicKey = await getVapidPublicKey();
     
     if (!vapidPublicKey) {
-      console.error('Failed to get VAPID public key');
+      console.error('[Notifications] Failed to get VAPID public key');
       return null;
     }
+    console.log('[Notifications] VAPID key received');
 
     // Подписываемся на push
+    console.log('[Notifications] Creating push subscription...');
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
     });
 
-    console.log('Push subscription created');
+    console.log('[Notifications] Push subscription created successfully');
     return subscription;
   } catch (error) {
-    console.error('Error subscribing to push:', error);
+    console.error('[Notifications] Error subscribing to push:', error);
     return null;
   }
 };
@@ -139,47 +149,55 @@ export const unregisterSubscription = async (subscription) => {
  */
 export const initializeNotifications = async () => {
   try {
+    console.log('[Notifications] Starting initialization...');
+    
     // Проверяем поддержку
     if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
+      console.warn('[Notifications] Browser does not support notifications');
       return { success: false, message: 'Notifications not supported' };
     }
 
     if (!('serviceWorker' in navigator)) {
-      console.warn('This browser does not support service workers');
+      console.warn('[Notifications] Browser does not support service workers');
       return { success: false, message: 'Service workers not supported' };
     }
 
     if (!('PushManager' in window)) {
-      console.warn('This browser does not support push notifications');
+      console.warn('[Notifications] Browser does not support push notifications');
       return { success: false, message: 'Push not supported' };
     }
+
+    console.log('[Notifications] Current permission:', Notification.permission);
 
     // Запрашиваем разрешение
     const permissionGranted = await requestNotificationPermission();
     
     if (!permissionGranted) {
-      console.log('Notification permission not granted');
+      console.log('[Notifications] Permission not granted');
       return { success: false, message: 'Permission denied' };
     }
+
+    console.log('[Notifications] Permission granted, subscribing to push...');
 
     // Подписываемся на push
     const subscription = await subscribeToPush();
     
     if (!subscription) {
-      console.warn('Failed to subscribe to push - VAPID keys may not be configured');
+      console.warn('[Notifications] Failed to subscribe to push - VAPID keys may not be configured');
       return { success: false, message: 'Failed to subscribe' };
     }
 
+    console.log('[Notifications] Registering subscription with backend...');
     // Регистрируем на backend
     await registerSubscription(subscription);
 
     // Сохраняем подписку в localStorage для отладки
     localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()));
 
+    console.log('[Notifications] Initialization complete!');
     return { success: true, subscription };
   } catch (error) {
-    console.error('Error initializing notifications:', error);
+    console.error('[Notifications] Error during initialization:', error);
     // Не бросаем ошибку дальше - просто логируем
     return { success: false, message: error.message };
   }

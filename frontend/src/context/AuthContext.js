@@ -16,35 +16,53 @@ export const AuthProvider = ({ children }) => {
     // Проверяем авторизацию и валидность токена
     const checkAuth = async () => {
       const token = localStorage.getItem('access_token');
+      const refreshToken = localStorage.getItem('refresh_token');
       const currentUser = authService.getCurrentUser();
+      
+      console.log('[Auth] Checking authentication...', { 
+        hasToken: !!token, 
+        hasRefreshToken: !!refreshToken,
+        hasUser: !!currentUser 
+      });
       
       if (token && currentUser) {
         try {
           // Проверяем валидность токена через запрос к API
+          console.log('[Auth] Validating token...');
           const userResponse = await api.get('/auth/me/');
           const userData = userResponse.data;
+          
+          console.log('[Auth] Token valid, user authenticated:', userData.username);
           
           // Обновляем данные пользователя
           localStorage.setItem('user', JSON.stringify(userData));
           setUser(userData);
           
-          // Инициализируем уведомления для авторизованного пользователя
-          initializeNotifications().then((result) => {
-            if (result.success) {
-              console.log('Notifications initialized successfully');
-            } else {
-              console.log('Failed to initialize notifications:', result.message);
-            }
-          });
+          // Ждём немного для регистрации service worker, затем инициализируем уведомления
+          setTimeout(() => {
+            console.log('[Auth] Initializing notifications...');
+            initializeNotifications().then((result) => {
+              if (result.success) {
+                console.log('[Auth] Notifications initialized successfully');
+              } else {
+                console.log('[Auth] Failed to initialize notifications:', result.message);
+              }
+            }).catch((error) => {
+              console.error('[Auth] Error initializing notifications:', error);
+            });
+          }, 1000);
         } catch (error) {
           // Если токен невалидный, очищаем данные
-          console.error('Token validation failed:', error);
+          console.error('[Auth] Token validation failed:', error.message);
           authService.logout();
           setUser(null);
         }
       } else {
-        // Нет токена или пользователя - очищаем на всякий случай
-        authService.logout();
+        // Нет токена или пользователя
+        console.log('[Auth] No valid credentials found, clearing data');
+        if (token || refreshToken || currentUser) {
+          authService.logout();
+        }
         setUser(null);
       }
       

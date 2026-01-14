@@ -47,11 +47,11 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        // Если обновление токена не удалось, выходим
+        // Если обновление токена не удалось, очищаем данные
+        // Но НЕ делаем редирект - пусть этим занимается AuthContext
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
