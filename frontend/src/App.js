@@ -25,7 +25,7 @@ function Home() {
 
   // Перенаправляем в зависимости от роли
   if (user.role === 'admin') {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/dashboard" replace />;
   } else if (user.role === 'driver') {
     return <Navigate to="/driver" replace />;
   } else if (user.role === 'customer') {
@@ -81,7 +81,7 @@ function App() {
 
           {/* Admin routes */}
           <Route
-            path="/admin/*"
+            path="/dashboard/*"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Layout>

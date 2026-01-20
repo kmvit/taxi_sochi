@@ -22,7 +22,7 @@ const Login = () => {
       
       // Перенаправляем в зависимости от роли
       if (user.role === 'admin') {
-        navigate('/admin');
+        navigate('/dashboard');
       } else if (user.role === 'driver') {
         navigate('/driver');
       } else if (user.role === 'customer') {

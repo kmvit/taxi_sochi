@@ -210,7 +210,7 @@ const AdminDashboard = () => {
             <div className="alert alert-info" style={{ padding: '0.75rem', fontSize: '0.85rem' }}>
               <p style={{ margin: 0 }}>
                 <strong>Совет:</strong> Используйте{' '}
-                <a href="http://localhost:8000/admin" target="_blank" rel="noopener noreferrer">
+                <a href="/admin" target="_blank" rel="noopener noreferrer">
                   Django Admin
                 </a>
                 {' '}для расширенного управления

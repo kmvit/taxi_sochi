@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
     if (!user) return '/';
     switch (user.role) {
       case 'admin':
-        return '/admin';
+        return '/dashboard';
       case 'driver':
         return '/driver';
       case 'customer':
@@ -52,7 +52,7 @@ const Layout = ({ children }) => {
         case 'customer':
           return '/customer/profile';
         case 'admin':
-          return '/admin/profile';
+          return '/dashboard/profile';
         default:
           return '/profile';
       }
@@ -78,12 +78,12 @@ const Layout = ({ children }) => {
         ];
       case 'admin':
         return [
-          { path: '/admin', label: 'Главная', icon: '🏠', mobileLabel: 'Главная' },
-          { path: '/admin/orders', label: 'Заказы', icon: '📋', mobileLabel: 'Заказы' },
-          { path: '/admin/drivers', label: 'Водители', icon: '👥', mobileLabel: 'Водители' },
-          { path: '/admin/cars', label: 'Автомобили', icon: '🚙', mobileLabel: 'Авто' },
-          { path: '/admin/zones', label: 'Зоны', icon: '🗺️', mobileLabel: 'Зоны', hideOnMobile: true },
-          { path: '/admin/pricing', label: 'Прайс-лист', icon: '💰', mobileLabel: 'Прайс' },
+          { path: '/dashboard', label: 'Главная', icon: '🏠', mobileLabel: 'Главная' },
+          { path: '/dashboard/orders', label: 'Заказы', icon: '📋', mobileLabel: 'Заказы' },
+          { path: '/dashboard/drivers', label: 'Водители', icon: '👥', mobileLabel: 'Водители' },
+          { path: '/dashboard/cars', label: 'Автомобили', icon: '🚙', mobileLabel: 'Авто' },
+          { path: '/dashboard/zones', label: 'Зоны', icon: '🗺️', mobileLabel: 'Зоны', hideOnMobile: true },
+          { path: '/dashboard/pricing', label: 'Прайс-лист', icon: '💰', mobileLabel: 'Прайс' },
           profileItem,
         ];
       default:

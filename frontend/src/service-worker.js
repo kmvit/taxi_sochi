@@ -129,7 +129,7 @@ self.addEventListener('notificationclick', (event) => {
   if (data?.type === 'new_order' || data?.type === 'order_cancelled') {
     url = '/driver/available-orders';
   } else if (data?.type === 'order_created' || data?.type === 'order_completed') {
-    url = '/admin/orders';
+    url = '/dashboard/orders';
   } else if (data?.order_id) {
     url = `/orders/${data.order_id}`;
   }
