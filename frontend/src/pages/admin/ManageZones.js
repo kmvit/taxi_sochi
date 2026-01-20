@@ -11,6 +11,7 @@ const ManageZones = () => {
   const [success, setSuccess] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -207,11 +208,16 @@ const ManageZones = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 className="page-title" style={{ margin: 0 }}>Управление зонами</h1>
-        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-          + Добавить зону
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary" onClick={() => setShowMapModal(true)}>
+            🗺️ Показать карту
+          </button>
+          <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+            + Добавить зону
+          </button>
+        </div>
       </div>
 
       {success && !showModal && (
@@ -226,7 +232,7 @@ const ManageZones = () => {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div style={{ marginBottom: '2rem' }}>
         {/* Список зон */}
         <div className="card">
           <h2 className="card-title">Список зон</h2>
@@ -308,24 +314,20 @@ const ManageZones = () => {
             </div>
           )}
         </div>
-
-        {/* Карта */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <ZoneMap
-            zones={zones}
-            selectedZone={selectedZone}
-            editable={false}
-          />
-        </div>
       </div>
 
       {/* Модальное окно */}
       {showModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div 
-            className="modal-content" 
+            className="modal-content zone-edit-modal" 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '90vw', width: '1200px', maxHeight: '90vh', overflow: 'auto' }}
+            style={{ 
+              maxWidth: '95vw', 
+              width: '1200px', 
+              maxHeight: '95vh', 
+              overflow: 'auto'
+            }}
           >
             <div className="modal-header">
               <h2>{isEditing ? 'Редактировать зону' : 'Создать зону'}</h2>
@@ -347,7 +349,13 @@ const ManageZones = () => {
             )}
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr',
+                gap: '1.5rem'
+              }}
+              className="zone-edit-grid"
+              >
                 {/* Форма */}
                 <div>
                   <div className="form-group">
@@ -417,7 +425,14 @@ const ManageZones = () => {
                 </div>
 
                 {/* Карта для рисования */}
-                <div style={{ height: '500px', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ 
+                  height: '500px',
+                  borderRadius: '8px', 
+                  overflow: 'hidden',
+                  minHeight: '300px'
+                }}
+                className="zone-map-container"
+                >
                   <ZoneMap
                     zones={isEditing && selectedZone.id ? [{ ...selectedZone, ...formData }] : []}
                     selectedZone={{ ...selectedZone, ...formData }}
@@ -436,6 +451,69 @@ const ManageZones = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно с картой на весь экран */}
+      {showMapModal && (
+        <div 
+          className="modal-overlay" 
+          onClick={() => setShowMapModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative'
+            }}
+          >
+            <div style={{
+              padding: '1rem',
+              background: 'white',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '1px solid #e5e7eb',
+              zIndex: 10000
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Карта зон</h2>
+              <button 
+                onClick={() => setShowMapModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '2rem',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '0.5rem',
+                  lineHeight: 1
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+              <ZoneMap
+                zones={zones}
+                selectedZone={selectedZone}
+                editable={false}
+              />
+            </div>
           </div>
         </div>
       )}

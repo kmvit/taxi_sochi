@@ -593,3 +593,25 @@ textarea.form-control {
   font-size: 1.2rem;
   color: #666;
 }
+
+/* Zone Management - Mobile Responsive */
+@media (min-width: 768px) {
+  .zone-edit-grid {
+    grid-template-columns: 1fr 2fr !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .zone-edit-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 0 !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  .zone-map-container {
+    height: 400px !important;
+  }
+}
