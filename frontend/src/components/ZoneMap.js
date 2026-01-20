@@ -8,8 +8,14 @@ const ZoneMap = ({ zones = [], selectedZone = null, onZoneChange, editable = fal
   const mapRef = useRef(null);
   const ymapRef = useRef(null);
   const polygonsRef = useRef({});
+  const onZoneChangeRef = useRef(onZoneChange);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapError, setMapError] = useState(null);
+
+  // Обновляем ref при изменении onZoneChange
+  useEffect(() => {
+    onZoneChangeRef.current = onZoneChange;
+  }, [onZoneChange]);
 
   // Инициализация карты
   useEffect(() => {
@@ -173,11 +179,11 @@ const ZoneMap = ({ zones = [], selectedZone = null, onZoneChange, editable = fal
                       geoJsonCoords.push(geoJsonCoords[0]);
                     }
                     
-                    if (onZoneChange) {
+                    if (onZoneChangeRef.current) {
                       try {
                         const bounds = polygon.geometry.getBounds();
                         if (bounds && bounds[0] && bounds[1]) {
-                          onZoneChange({
+                          onZoneChangeRef.current({
                             geometry: {
                               type: 'Polygon',
                               coordinates: [geoJsonCoords]
@@ -227,7 +233,7 @@ const ZoneMap = ({ zones = [], selectedZone = null, onZoneChange, editable = fal
         console.error(`Ошибка отображения зоны ${zone.name}:`, error);
       }
     });
-  }, [zones, selectedZone, isMapReady, editable]); // Убрали onZoneChange из зависимостей
+  }, [zones, selectedZone, isMapReady, editable]);
 
   // Режим рисования новой зоны
   useEffect(() => {
@@ -283,11 +289,11 @@ const ZoneMap = ({ zones = [], selectedZone = null, onZoneChange, editable = fal
           const geoJsonCoords = coords.map(coord => [coord[1], coord[0]]);
           geoJsonCoords.push(geoJsonCoords[0]); // Замыкаем полигон
 
-          if (onZoneChange) {
+          if (onZoneChangeRef.current) {
             try {
               const bounds = drawingPolygon.geometry.getBounds();
               if (bounds && bounds[0] && bounds[1]) {
-                onZoneChange({
+                onZoneChangeRef.current({
                   geometry: {
                     type: 'Polygon',
                     coordinates: [geoJsonCoords]
@@ -326,7 +332,7 @@ const ZoneMap = ({ zones = [], selectedZone = null, onZoneChange, editable = fal
         // Игнорируем ошибки очистки
       }
     };
-  }, [isMapReady, editable, selectedZone]); // Убрали onZoneChange из зависимостей
+  }, [isMapReady, editable, selectedZone]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
