@@ -17,25 +17,35 @@ def order_notification_handler(sender, instance, created, **kwargs):
         send_order_completed_to_admins,
     )
     
+    logger.info(f"[SIGNAL] Order notification handler triggered: order_id={instance.id}, created={created}, status={instance.status}")
+    
     try:
         if created:
             # Новый заказ создан
+            logger.info(f"[SIGNAL] New order created: #{instance.id}, status={instance.status}, car_class={instance.car_class.name}")
             if instance.status == 'pending':
                 # Уведомляем водителей с нужной категорией авто
-                send_order_notification_to_drivers(instance)
+                logger.info(f"[SIGNAL] Sending notifications to drivers for order #{instance.id}")
+                driver_count = send_order_notification_to_drivers(instance)
+                logger.info(f"[SIGNAL] Sent to {driver_count} drivers")
+                
                 # Уведомляем администраторов
-                send_order_created_to_admins(instance)
-                logger.info(f"Notifications sent for new order #{instance.id}")
+                logger.info(f"[SIGNAL] Sending notifications to admins for order #{instance.id}")
+                admin_count = send_order_created_to_admins(instance)
+                logger.info(f"[SIGNAL] Sent to {admin_count} admins")
+            else:
+                logger.info(f"[SIGNAL] Order status is not 'pending', skipping notifications")
         
         else:
             # Заказ обновлен
+            logger.info(f"[SIGNAL] Order updated: #{instance.id}, status={instance.status}")
             if instance.status == 'completed':
                 # Заказ завершен - уведомляем админов
                 send_order_completed_to_admins(instance)
-                logger.info(f"Completion notification sent for order #{instance.id}")
+                logger.info(f"[SIGNAL] Completion notification sent for order #{instance.id}")
     
     except Exception as e:
-        logger.error(f"Error sending order notification: {e}")
+        logger.error(f"[SIGNAL] Error sending order notification: {e}", exc_info=True)
 
 
 # Для отслеживания отмены заказа водителем нам нужно знать предыдущее состояние

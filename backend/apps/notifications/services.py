@@ -114,6 +114,8 @@ def send_notification_to_user(
     Returns:
         True если отправлено успешно хотя бы одному устройству
     """
+    logger.info(f"[NOTIFY] Sending notification to user {user.username} (id={user.id})")
+    
     # Создаем лог
     log = NotificationLog.objects.create(
         recipient=user,
@@ -126,15 +128,18 @@ def send_notification_to_user(
     # Получаем подписки
     subscriptions = get_user_subscriptions(user)
     
+    logger.info(f"[NOTIFY] Found {len(subscriptions)} subscriptions for user {user.username}")
+    
     if not subscriptions:
         log.error_message = "No active subscriptions found"
         log.save()
-        logger.info(f"No subscriptions for user {user.username}")
+        logger.warning(f"[NOTIFY] No subscriptions for user {user.username}")
         return False
     
     # Отправляем всем подпискам
     success_count = 0
-    for subscription in subscriptions:
+    for idx, subscription in enumerate(subscriptions):
+        logger.info(f"[NOTIFY] Attempting to send to subscription {idx+1}/{len(subscriptions)}")
         if send_web_push(subscription, title, body, data):
             success_count += 1
         else:
@@ -146,9 +151,11 @@ def send_notification_to_user(
     if success_count > 0:
         log.is_sent = True
         log.save()
+        logger.info(f"[NOTIFY] Successfully sent to {success_count}/{len(subscriptions)} subscriptions for {user.username}")
     else:
         log.error_message = f"Failed to send to all subscriptions"
         log.save()
+        logger.error(f"[NOTIFY] Failed to send to all subscriptions for {user.username}")
     
     return success_count > 0
 
@@ -180,12 +187,20 @@ def send_to_drivers_by_car_class(
         cars__is_active=True
     ).distinct()
     
+    logger.info(f"[NOTIFY] Found {drivers.count()} drivers with car_class_id={car_class_id}")
+    for driver in drivers:
+        logger.info(f"[NOTIFY] Driver: {driver.user.username} (user_id={driver.user.id})")
+    
     sent_count = 0
     for driver in drivers:
+        logger.info(f"[NOTIFY] Sending notification to driver {driver.user.username}")
         if send_notification_to_user(driver.user, notification_type, title, body, data):
             sent_count += 1
+            logger.info(f"[NOTIFY] Successfully sent to {driver.user.username}")
+        else:
+            logger.warning(f"[NOTIFY] Failed to send to {driver.user.username}")
     
-    logger.info(f"Sent notifications to {sent_count} drivers with car_class_id={car_class_id}")
+    logger.info(f"[NOTIFY] Sent notifications to {sent_count}/{drivers.count()} drivers with car_class_id={car_class_id}")
     return sent_count
 
 

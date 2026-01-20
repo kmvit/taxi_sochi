@@ -24,6 +24,30 @@ class Zone(models.Model):
         verbose_name='Активна'
     )
     
+    # Геометрия зоны
+    geometry = models.JSONField(
+        blank=True,
+        null=True,
+        verbose_name='Геометрия (GeoJSON)',
+        help_text='Координаты полигона в формате GeoJSON'
+    )
+    center_lat = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name='Широта центра'
+    )
+    center_lon = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name='Долгота центра'
+    )
+    color = models.CharField(
+        max_length=7,
+        default='#3b82f6',
+        verbose_name='Цвет на карте',
+        help_text='Цвет в формате HEX (например, #3b82f6)'
+    )
+    
     class Meta:
         verbose_name = 'Зона'
         verbose_name_plural = 'Зоны'

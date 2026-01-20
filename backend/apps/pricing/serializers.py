@@ -8,7 +8,7 @@ class ZoneSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Zone
-        fields = ['id', 'name', 'description', 'order', 'is_active']
+        fields = ['id', 'name', 'description', 'order', 'is_active', 'geometry', 'center_lat', 'center_lon', 'color']
         read_only_fields = ['id']
 
 

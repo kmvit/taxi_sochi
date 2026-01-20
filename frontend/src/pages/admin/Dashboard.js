@@ -5,6 +5,7 @@ import AllOrders from './AllOrders';
 import ManageDrivers from './ManageDrivers';
 import ManageCars from './ManageCars';
 import ManagePricing from './ManagePricing';
+import ManageZones from './ManageZones';
 import Profile from '../Profile';
 
 const AdminDashboard = () => {
@@ -222,6 +223,7 @@ const AdminDashboard = () => {
       <Route path="drivers" element={<ManageDrivers />} />
       <Route path="cars" element={<ManageCars />} />
       <Route path="pricing" element={<ManagePricing />} />
+      <Route path="zones" element={<ManageZones />} />
       <Route path="profile" element={<Profile />} />
     </Routes>
   );

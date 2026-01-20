@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 const ManagePricing = () => {
+  const navigate = useNavigate();
   const [pricing, setPricing] = useState([]);
   const [zones, setZones] = useState([]);
   const [carClasses, setCarClasses] = useState([]);
@@ -173,9 +175,14 @@ const ManagePricing = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 className="page-title" style={{ margin: 0 }}>Прайс-лист</h1>
-        <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-          + Добавить цену
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-secondary" onClick={() => navigate('/admin/zones')}>
+            🗺️ Управление зонами
+          </button>
+          <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+            + Добавить цену
+          </button>
+        </div>
       </div>
 
       {success && (

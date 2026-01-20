@@ -10,6 +10,10 @@ const CreateOrder = () => {
   const [carClasses, setCarClasses] = useState([]);
   const [price, setPrice] = useState(null);
   const [error, setError] = useState('');
+  const [detectingZoneFrom, setDetectingZoneFrom] = useState(false);
+  const [detectingZoneTo, setDetectingZoneTo] = useState(false);
+  const [zoneFromDetected, setZoneFromDetected] = useState(false);
+  const [zoneToDetected, setZoneToDetected] = useState(false);
 
   const [formData, setFormData] = useState({
     passenger_name: '',
@@ -72,10 +76,64 @@ const CreateOrder = () => {
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    // Сбрасываем флаг автоопределения при ручном изменении зоны
+    if (name === 'zone_from') {
+      setZoneFromDetected(false);
+    }
+    if (name === 'zone_to') {
+      setZoneToDetected(false);
+    }
+  };
+
+  // Автоопределение зоны по адресу
+  const detectZone = async (address, isFrom = true) => {
+    if (!address || address.trim().length < 5) {
+      return;
+    }
+
+    const setDetecting = isFrom ? setDetectingZoneFrom : setDetectingZoneTo;
+    const setDetected = isFrom ? setZoneFromDetected : setZoneToDetected;
+
+    setDetecting(true);
+    try {
+      const response = await api.post('/zones/detect-by-address/', { address });
+      const zone = response.data.zone;
+      
+      setFormData(prev => ({
+        ...prev,
+        [isFrom ? 'zone_from' : 'zone_to']: zone.id
+      }));
+      setDetected(true);
+    } catch (err) {
+      console.log('Зона не определена автоматически:', err.response?.data?.detail);
+      setDetected(false);
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  // Обработчик изменения адреса с задержкой для автоопределения
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAddressBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'address_from' && value.trim()) {
+      detectZone(value, true);
+    } else if (name === 'address_to' && value.trim()) {
+      detectZone(value, false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -153,7 +211,32 @@ const CreateOrder = () => {
           <h2 className="card-title">Маршрут</h2>
 
           <div className="form-group">
-            <label className="form-label">Откуда*</label>
+            <label className="form-label">Адрес откуда*</label>
+            <textarea
+              name="address_from"
+              className="form-control"
+              value={formData.address_from}
+              onChange={handleAddressChange}
+              onBlur={handleAddressBlur}
+              disabled={loading}
+              placeholder="Введите полный адрес, например: Сочи, Международный аэропорт"
+              rows="2"
+              required
+            />
+            {detectingZoneFrom && (
+              <small style={{ color: '#666', fontSize: '0.85rem' }}>
+                🔍 Определяем зону...
+              </small>
+            )}
+            {zoneFromDetected && formData.zone_from && (
+              <small style={{ color: '#28a745', fontSize: '0.85rem' }}>
+                ✓ Зона определена: {zones.find(z => z.id === parseInt(formData.zone_from))?.name}
+              </small>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Зона откуда*</label>
             <select
               name="zone_from"
               className="form-control"
@@ -162,29 +245,47 @@ const CreateOrder = () => {
               required
               disabled={loading}
             >
-              <option value="">Выберите зону</option>
+              <option value="">
+                {zoneFromDetected ? 'Зона определена автоматически' : 'Выберите зону вручную'}
+              </option>
               {zones.map((zone) => (
                 <option key={zone.id} value={zone.id}>
                   {zone.name}
                 </option>
               ))}
             </select>
+            <small style={{ color: '#666', fontSize: '0.85rem' }}>
+              Зона определяется автоматически по адресу. Можно изменить вручную.
+            </small>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Адрес откуда (детали)</label>
+            <label className="form-label">Адрес куда*</label>
             <textarea
-              name="address_from"
+              name="address_to"
               className="form-control"
-              value={formData.address_from}
-              onChange={handleChange}
+              value={formData.address_to}
+              onChange={handleAddressChange}
+              onBlur={handleAddressBlur}
               disabled={loading}
-              placeholder="Например: Терминал 1, выход 3"
+              placeholder="Введите полный адрес, например: Сочи, Красная Поляна, отметка 960"
+              rows="2"
+              required
             />
+            {detectingZoneTo && (
+              <small style={{ color: '#666', fontSize: '0.85rem' }}>
+                🔍 Определяем зону...
+              </small>
+            )}
+            {zoneToDetected && formData.zone_to && (
+              <small style={{ color: '#28a745', fontSize: '0.85rem' }}>
+                ✓ Зона определена: {zones.find(z => z.id === parseInt(formData.zone_to))?.name}
+              </small>
+            )}
           </div>
 
           <div className="form-group">
-            <label className="form-label">Куда*</label>
+            <label className="form-label">Зона куда*</label>
             <select
               name="zone_to"
               className="form-control"
@@ -193,25 +294,18 @@ const CreateOrder = () => {
               required
               disabled={loading}
             >
-              <option value="">Выберите зону</option>
+              <option value="">
+                {zoneToDetected ? 'Зона определена автоматически' : 'Выберите зону вручную'}
+              </option>
               {zones.map((zone) => (
                 <option key={zone.id} value={zone.id}>
                   {zone.name}
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Адрес куда (детали)</label>
-            <textarea
-              name="address_to"
-              className="form-control"
-              value={formData.address_to}
-              onChange={handleChange}
-              disabled={loading}
-              placeholder="Например: ул. Ленина, 5"
-            />
+            <small style={{ color: '#666', fontSize: '0.85rem' }}>
+              Зона определяется автоматически по адресу. Можно изменить вручную.
+            </small>
           </div>
 
           <div className="form-group">

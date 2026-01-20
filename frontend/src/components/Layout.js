@@ -82,6 +82,7 @@ const Layout = ({ children }) => {
           { path: '/admin/orders', label: 'Заказы', icon: '📋', mobileLabel: 'Заказы' },
           { path: '/admin/drivers', label: 'Водители', icon: '👥', mobileLabel: 'Водители' },
           { path: '/admin/cars', label: 'Автомобили', icon: '🚙', mobileLabel: 'Авто' },
+          { path: '/admin/zones', label: 'Зоны', icon: '🗺️', mobileLabel: 'Зоны' },
           { path: '/admin/pricing', label: 'Прайс-лист', icon: '💰', mobileLabel: 'Прайс' },
           profileItem,
         ];

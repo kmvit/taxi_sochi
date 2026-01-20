@@ -187,6 +187,9 @@ VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
 VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
 VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'mailto:admin@taxi-pwa.local')
 
+# Yandex Maps API settings
+YANDEX_MAPS_API_KEY = os.getenv('YANDEX_MAPS_API_KEY', '')
+
 # Logging configuration
 LOGGING = {
     'version': 1,
