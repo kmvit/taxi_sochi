@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import { authService } from '../services/auth';
 import api from '../services/api';
 import { 
@@ -17,17 +18,42 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       const token = localStorage.getItem('access_token');
       const refreshToken = localStorage.getItem('refresh_token');
-      const currentUser = authService.getCurrentUser();
       
       console.log('[Auth] Checking authentication...', { 
         hasToken: !!token, 
-        hasRefreshToken: !!refreshToken,
-        hasUser: !!currentUser 
+        hasRefreshToken: !!refreshToken
       });
       
-      if (token && currentUser) {
+      // Если есть refresh token, но нет access token, пытаемся обновить
+      if (!token && refreshToken) {
+        try {
+          console.log('[Auth] No access token, trying to refresh...');
+          const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+          const response = await axios.post(`${API_URL}/auth/refresh/`, {
+            refresh: refreshToken,
+          });
+          const { access, refresh: newRefresh } = response.data;
+          localStorage.setItem('access_token', access);
+          // Обновляем refresh token, если он был обновлен
+          if (newRefresh) {
+            localStorage.setItem('refresh_token', newRefresh);
+          }
+          console.log('[Auth] Token refreshed successfully');
+        } catch (refreshError) {
+          console.error('[Auth] Token refresh failed:', refreshError.message);
+          authService.logout();
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Если есть токен (или мы его только что обновили), проверяем валидность
+      const currentToken = localStorage.getItem('access_token');
+      if (currentToken) {
         try {
           // Проверяем валидность токена через запрос к API
+          // Interceptor в api.js автоматически обновит токен, если он истек
           console.log('[Auth] Validating token...');
           const userResponse = await api.get('/auth/me/');
           const userData = userResponse.data;
@@ -52,15 +78,16 @@ export const AuthProvider = ({ children }) => {
             });
           }, 1000);
         } catch (error) {
-          // Если токен невалидный, очищаем данные
+          // Если токен невалидный и не удалось обновить (interceptor уже попытался),
+          // очищаем данные
           console.error('[Auth] Token validation failed:', error.message);
           authService.logout();
           setUser(null);
         }
       } else {
-        // Нет токена или пользователя
-        console.log('[Auth] No valid credentials found, clearing data');
-        if (token || refreshToken || currentUser) {
+        // Нет токенов вообще
+        console.log('[Auth] No valid credentials found');
+        if (refreshToken) {
           authService.logout();
         }
         setUser(null);

@@ -365,46 +365,6 @@ const ZoneMap = ({ zones = [], selectedZone = null, onZoneChange, editable = fal
           borderRadius: '8px'
         }}
       />
-      {editable && selectedZone && !selectedZone.id && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '10px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'white',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            zIndex: 1000
-          }}
-        >
-          <strong>Нарисуйте границы зоны на карте</strong>
-          <p style={{ margin: '5px 0 0 0', fontSize: '0.9em', color: '#666' }}>
-            Кликайте на карте, чтобы добавить точки полигона. Двойной клик завершит рисование.
-          </p>
-        </div>
-      )}
-      {editable && selectedZone && selectedZone.id && selectedZone.geometry && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '10px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'white',
-            padding: '10px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            zIndex: 1000
-          }}
-        >
-          <strong>Редактирование зоны</strong>
-          <p style={{ margin: '5px 0 0 0', fontSize: '0.9em', color: '#666' }}>
-            Перетаскивайте точки для изменения границ зоны
-          </p>
-        </div>
-      )}
     </div>
   );
 };

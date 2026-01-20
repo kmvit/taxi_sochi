@@ -40,8 +40,13 @@ api.interceptors.response.use(
             refresh: refreshToken,
           });
 
-          const { access } = response.data;
+          const { access, refresh } = response.data;
           localStorage.setItem('access_token', access);
+          
+          // Обновляем refresh token, если он был обновлен (ROTATE_REFRESH_TOKENS = True)
+          if (refresh) {
+            localStorage.setItem('refresh_token', refresh);
+          }
 
           originalRequest.headers.Authorization = `Bearer ${access}`;
           return api(originalRequest);
@@ -49,6 +54,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Если обновление токена не удалось, очищаем данные
         // Но НЕ делаем редирект - пусть этим занимается AuthContext
+        console.error('[API] Token refresh failed:', refreshError);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
