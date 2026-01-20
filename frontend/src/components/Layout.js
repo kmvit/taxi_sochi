@@ -82,7 +82,7 @@ const Layout = ({ children }) => {
           { path: '/admin/orders', label: 'Заказы', icon: '📋', mobileLabel: 'Заказы' },
           { path: '/admin/drivers', label: 'Водители', icon: '👥', mobileLabel: 'Водители' },
           { path: '/admin/cars', label: 'Автомобили', icon: '🚙', mobileLabel: 'Авто' },
-          { path: '/admin/zones', label: 'Зоны', icon: '🗺️', mobileLabel: 'Зоны' },
+          { path: '/admin/zones', label: 'Зоны', icon: '🗺️', mobileLabel: 'Зоны', hideOnMobile: true },
           { path: '/admin/pricing', label: 'Прайс-лист', icon: '💰', mobileLabel: 'Прайс' },
           profileItem,
         ];
@@ -134,7 +134,7 @@ const Layout = ({ children }) => {
       </main>
       {user && navItems.length > 0 && (
         <nav className="nav-mobile">
-          {navItems.map((item) => (
+          {navItems.filter(item => !item.hideOnMobile).map((item) => (
             <Link
               key={item.path}
               to={item.path}
