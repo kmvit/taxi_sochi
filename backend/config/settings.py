@@ -211,3 +211,14 @@ LOGGING = {
         },
     },
 }
+
+
+# Админка не использует кастомную аутентификацию
+ADMIN_LOGIN_URL = '/admin/login/'
+LOGIN_URL = '/api/auth/login/'  # только для обычных views
+
+# Или полностью отключите редиректы для админки
+LOGIN_REDIRECT_URL = '/'
+
+# Разрешите админку работать независимо
+LOGOUT_REDIRECT_URL = '/admin/'
