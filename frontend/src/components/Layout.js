@@ -80,6 +80,7 @@ const Layout = ({ children }) => {
         return [
           { path: '/dashboard', label: 'Главная', icon: '🏠', mobileLabel: 'Главная' },
           { path: '/dashboard/orders', label: 'Заказы', icon: '📋', mobileLabel: 'Заказы' },
+          { path: '/dashboard/create-order-from-text', label: 'Создать из текста', icon: '📝', mobileLabel: 'Создать' },
           { path: '/dashboard/drivers', label: 'Водители', icon: '👥', mobileLabel: 'Водители' },
           { path: '/dashboard/cars', label: 'Автомобили', icon: '🚙', mobileLabel: 'Авто' },
           { path: '/dashboard/zones', label: 'Зоны', icon: '🗺️', mobileLabel: 'Зоны', hideOnMobile: true },

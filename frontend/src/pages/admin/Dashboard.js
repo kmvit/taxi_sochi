@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import api from '../../services/api';
 import AllOrders from './AllOrders';
+import CreateOrderFromText from './CreateOrderFromText';
 import ManageDrivers from './ManageDrivers';
 import ManageCars from './ManageCars';
 import ManagePricing from './ManagePricing';
@@ -220,6 +221,7 @@ const AdminDashboard = () => {
         }
       />
       <Route path="orders" element={<AllOrders />} />
+      <Route path="create-order-from-text" element={<CreateOrderFromText />} />
       <Route path="drivers" element={<ManageDrivers />} />
       <Route path="cars" element={<ManageCars />} />
       <Route path="pricing" element={<ManagePricing />} />

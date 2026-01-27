@@ -3,13 +3,20 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db import models
+from django.conf import settings
+import requests
+from shapely.geometry import Point, shape
 from .models import Order
 from .serializers import (
     OrderSerializer,
     OrderCreateSerializer,
     OrderUpdateStatusSerializer
 )
+from .text_parser import TextOrderParser
 from apps.drivers.models import Driver
+from apps.pricing.models import Zone, Pricing
+from apps.cars.models import CarClass
+from apps.pricing.serializers import ZoneSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -293,3 +300,217 @@ class OrderViewSet(viewsets.ModelViewSet):
                 {"detail": "Не удалось создать заказ из email"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+    
+    def _detect_zone_by_address(self, address: str):
+        """
+        Вспомогательная функция для поиска зоны по адресу
+        Возвращает (zone, error_message) или (None, None) если зона не найдена
+        """
+        try:
+            geocode_url = 'https://geocode-maps.yandex.ru/1.x/'
+            params = {
+                'apikey': settings.YANDEX_MAPS_API_KEY,
+                'geocode': address,
+                'format': 'json',
+                'results': 1
+            }
+            
+            response = requests.get(geocode_url, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Извлекаем координаты
+            geo_object = data.get('response', {}).get('GeoObjectCollection', {}).get('featureMember', [])
+            if not geo_object:
+                return None, "Адрес не найден"
+            
+            coords_str = geo_object[0]['GeoObject']['Point']['pos']
+            lon, lat = map(float, coords_str.split())
+            point = Point(lon, lat)
+            
+            # Ищем зону, в которую попадает точка
+            zones = Zone.objects.filter(is_active=True, geometry__isnull=False)
+            for zone in zones:
+                try:
+                    polygon = shape(zone.geometry)
+                    if polygon.contains(point):
+                        return zone, None
+                except Exception:
+                    # Пропускаем зоны с некорректной геометрией
+                    continue
+            
+            # Зона не найдена
+            return None, None
+            
+        except requests.RequestException as e:
+            return None, f"Ошибка геокодирования: {str(e)}"
+        except Exception as e:
+            return None, f"Внутренняя ошибка: {str(e)}"
+    
+    @action(detail=False, methods=['get'], url_path='zones-list')
+    def zones_list(self, request):
+        """
+        Получить список всех активных зон для ручного выбора
+        Только для администраторов
+        """
+        if request.user.role != 'admin':
+            return Response(
+                {"detail": "Только для администраторов"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        zones = Zone.objects.filter(is_active=True).order_by('order', 'name')
+        serializer = ZoneSerializer(zones, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'], url_path='create-from-text')
+    def create_from_text(self, request):
+        """
+        Создать заказ из текста
+        Только для администраторов
+        """
+        if request.user.role != 'admin':
+            return Response(
+                {"detail": "Только для администраторов"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        text = request.data.get('text', '')
+        zone_from_id = request.data.get('zone_from_id', None)
+        zone_to_id = request.data.get('zone_to_id', None)
+        
+        if not text:
+            return Response(
+                {"detail": "Требуется текст заказа"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Парсим текст
+        parser = TextOrderParser()
+        try:
+            parsed_data = parser.parse(text)
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Валидация обязательных полей
+        is_valid, missing_fields = parser.validate_required_fields(parsed_data)
+        if not is_valid:
+            return Response(
+                {
+                    "detail": "Отсутствуют обязательные поля",
+                    "missing_fields": missing_fields,
+                    "parsed_data": parsed_data
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Поиск зон по адресам (если не указаны вручную)
+        zone_from = None
+        zone_to = None
+        zones_not_found = []
+        
+        if zone_from_id:
+            try:
+                zone_from = Zone.objects.get(id=zone_from_id, is_active=True)
+            except Zone.DoesNotExist:
+                return Response(
+                    {"detail": f"Зона с ID {zone_from_id} не найдена"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            zone_from, error = self._detect_zone_by_address(parsed_data['address_from'])
+            if not zone_from:
+                zones_not_found.append('from')
+        
+        if zone_to_id:
+            try:
+                zone_to = Zone.objects.get(id=zone_to_id, is_active=True)
+            except Zone.DoesNotExist:
+                return Response(
+                    {"detail": f"Зона с ID {zone_to_id} не найдена"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            zone_to, error = self._detect_zone_by_address(parsed_data['address_to'])
+            if not zone_to:
+                zones_not_found.append('to')
+        
+        # Если зоны не найдены, возвращаем список зон для выбора
+        if zones_not_found:
+            zones = Zone.objects.filter(is_active=True).order_by('order', 'name')
+            zones_data = ZoneSerializer(zones, many=True).data
+            return Response(
+                {
+                    "detail": "Зоны не найдены по адресам",
+                    "zones_not_found": zones_not_found,
+                    "available_zones": zones_data,
+                    "parsed_data": parsed_data
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Поиск класса автомобиля
+        car_class = None
+        if parsed_data.get('car_class'):
+            car_class = CarClass.objects.filter(
+                name__icontains=parsed_data['car_class'],
+                is_active=True
+            ).first()
+            
+            if not car_class:
+                # Возвращаем список доступных классов
+                car_classes = CarClass.objects.filter(is_active=True).order_by('order', 'name')
+                from apps.cars.serializers import CarClassSerializer
+                return Response(
+                    {
+                        "detail": f"Класс автомобиля '{parsed_data['car_class']}' не найден",
+                        "available_car_classes": CarClassSerializer(car_classes, many=True).data,
+                        "parsed_data": parsed_data
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        # Создаем заказ
+        try:
+            # Получаем цены из прайс-листа
+            pricing = Pricing.objects.get(
+                zone_from=zone_from,
+                zone_to=zone_to,
+                car_class=car_class,
+                is_active=True
+            )
+        except Pricing.DoesNotExist:
+            return Response(
+                {
+                    "detail": "Цена для данного маршрута не найдена",
+                    "parsed_data": parsed_data
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Создаем заказ
+        order = Order.objects.create(
+            customer=request.user,
+            passenger_name=parsed_data['passenger_name'],
+            passenger_phone=parsed_data['passenger_phone'],
+            passenger_count=parsed_data.get('passenger_count', 1),
+            zone_from=zone_from,
+            zone_to=zone_to,
+            address_from=parsed_data.get('address_from', ''),
+            address_to=parsed_data.get('address_to', ''),
+            pickup_time=timezone.make_aware(parsed_data['pickup_time']),
+            direction=parsed_data.get('direction', 'oneway'),
+            car_class=car_class,
+            flight_number=parsed_data.get('flight_number', ''),
+            comment=parsed_data.get('comment', ''),
+            price_client=pricing.price_client,
+            price_driver=pricing.price_driver,
+            is_paid=False,
+            payment_method='admin_manual'
+        )
+        
+        serializer = self.get_serializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
